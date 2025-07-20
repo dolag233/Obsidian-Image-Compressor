@@ -50,6 +50,7 @@ interface I18nTexts {
 	compressing: string;
 	completed: string;
 	skipped: string;
+	skippedGif: string;
 	overallStatistics: string;
 	detailedResults: string;
 	totalFiles: string;
@@ -61,6 +62,7 @@ interface I18nTexts {
 	resultSavings: string;
 	compressionFailed: string;
 	skippedReason: string;
+	skippedGifReason: string;
 	close: string;
 	
 	// Settings tab
@@ -80,6 +82,8 @@ interface I18nTexts {
 	settingsTargetFileSizeDesc: string;
 	settingsResolutionScaleName: string;
 	settingsResolutionScaleDesc: string;
+	settingsEnableTargetLimitName: string;
+	settingsEnableTargetLimitDesc: string;
 	settingsShowResultsName: string;
 	settingsShowResultsDesc: string;
 	
@@ -141,6 +145,7 @@ const zhTexts: I18nTexts = {
 	compressing: '压缩中: {0}',
 	completed: '完成: {0}',
 	skipped: '跳过（无大小减少）: {0}',
+	skippedGif: '跳过（GIF动画）: {0}',
 	overallStatistics: '总体统计',
 	detailedResults: '详细结果',
 	totalFiles: '总文件数: {0}',
@@ -152,6 +157,7 @@ const zhTexts: I18nTexts = {
 	resultSavings: '节省 {0} MB',
 	compressionFailed: '压缩失败',
 	skippedReason: '跳过 - 压缩会增加文件大小',
+	skippedGifReason: '跳过 - 保护GIF动画',
 	close: '关闭',
 	
 	// Settings tab
@@ -171,6 +177,8 @@ const zhTexts: I18nTexts = {
 	settingsTargetFileSizeDesc: '设置压缩图片的目标文件大小。',
 	settingsResolutionScaleName: '分辨率缩放 (%)',
 	settingsResolutionScaleDesc: '缩小图片分辨率。100%表示原始大小，50%是一半大小。（范围：10-100）',
+	settingsEnableTargetLimitName: '启用压缩目标',
+	settingsEnableTargetLimitDesc: '启用后，将按设定的质量或文件大小目标进行压缩。禁用时使用默认压缩设置。',
 	settingsShowResultsName: '显示压缩结果',
 	settingsShowResultsDesc: '完成后显示详细的压缩统计信息。禁用时仅显示简单通知。',
 	
@@ -232,6 +240,7 @@ const enTexts: I18nTexts = {
 	compressing: 'Compressing: {0}',
 	completed: 'Completed: {0}',
 	skipped: 'Skipped (no size reduction): {0}',
+	skippedGif: 'Skipped (GIF animation): {0}',
 	overallStatistics: 'Overall Statistics',
 	detailedResults: 'Detailed Results',
 	totalFiles: 'Total Files: {0}',
@@ -243,6 +252,7 @@ const enTexts: I18nTexts = {
 	resultSavings: 'Saved {0} MB',
 	compressionFailed: 'Compression failed',
 	skippedReason: 'Skipped - compression would increase file size',
+	skippedGifReason: 'Skipped - preserving GIF animation',
 	close: 'Close',
 	
 	// Settings tab
@@ -262,6 +272,8 @@ const enTexts: I18nTexts = {
 	settingsTargetFileSizeDesc: 'Set the target file size for the compressed image.',
 	settingsResolutionScaleName: 'Resolution Scale (%)',
 	settingsResolutionScaleDesc: 'Scale down the image resolution. 100% means original size, 50% is half size. (Range: 10-100)',
+	settingsEnableTargetLimitName: 'Enable Compression Target',
+	settingsEnableTargetLimitDesc: 'When enabled, compress images according to quality or file size targets. When disabled, use default compression settings.',
 	settingsShowResultsName: 'Show compression results',
 	settingsShowResultsDesc: 'Display detailed compression statistics after completion. When disabled, only shows a simple notification.',
 	
@@ -314,7 +326,7 @@ interface CompressionResult {
 	error?: string;
 }
 
-// 更新设置接口，删除enableTargetLimit
+// 更新设置接口
 interface ImageCompressorSettings {
 	minWidth: number;
 	minHeight: number;
@@ -323,6 +335,7 @@ interface ImageCompressorSettings {
 	targetQuality: number; // 目标质量百分比 (0-100)
 	targetFileSize: number; // 目标文件大小 (MB)
 	resolutionScale: number; // 分辨率缩放百分比 (10-100)
+	enableTargetLimit: boolean; // 是否启用质量限制
 	showCompressionResults: boolean; // 是否显示压缩结果
 }
 
@@ -334,6 +347,7 @@ const DEFAULT_SETTINGS: ImageCompressorSettings = {
 	targetQuality: 70, // 默认质量70%
 	targetFileSize: 0.5, // 默认目标大小0.5MB
 	resolutionScale: 100, // 默认100%分辨率
+	enableTargetLimit: true, // 默认启用质量限制
 	showCompressionResults: true, // 默认显示压缩结果
 }
 
@@ -605,6 +619,7 @@ class PreviewPanelModal {
             targetQuality: this.plugin.settings.targetQuality,
             targetFileSize: this.plugin.settings.targetFileSize,
             resolutionScale: this.plugin.settings.resolutionScale,
+            enableTargetLimit: this.plugin.settings.enableTargetLimit,
         };
     }
 
@@ -699,7 +714,8 @@ class PreviewPanelModal {
         const targetControls = targetSection.createDiv({ cls: 'compression-controls' });
 
         const limitCheckbox = targetControls.createEl('input', { type: 'checkbox' });
-        // Removed enableTargetLimit setting, so this checkbox is removed
+        limitCheckbox.checked = this.tempSettings.enableTargetLimit;
+        limitCheckbox.title = '启用或禁用压缩目标设置';
         
         const targetSelect = targetControls.createEl('select');
         targetSelect.createEl('option', { value: 'quality', text: I18n.t('targetQualityOption') });
@@ -712,21 +728,19 @@ class PreviewPanelModal {
             : String(this.tempSettings.targetFileSize);
 
         const updateDisabledState = () => {
-            // Removed enableTargetLimit setting, so this function is removed
-            // const isEnabled = limitCheckbox.checked;
-            // targetSelect.disabled = !isEnabled;
-            // targetInput.disabled = !isEnabled;
+            const isEnabled = limitCheckbox.checked;
+            targetSelect.disabled = !isEnabled;
+            targetInput.disabled = !isEnabled;
 
-            // const opacity = isEnabled ? '1' : '0.5';
-            // targetSelect.style.opacity = opacity;
-            // targetInput.style.opacity = opacity;
+            const opacity = isEnabled ? '1' : '0.5';
+            targetSelect.style.opacity = opacity;
+            targetInput.style.opacity = opacity;
         };
 
-        // Removed enableTargetLimit setting, so this listener is removed
-        // limitCheckbox.onchange = () => {
-        //     this.tempSettings.enableTargetLimit = limitCheckbox.checked;
-        //     updateDisabledState();
-        // };
+        limitCheckbox.onchange = () => {
+            this.tempSettings.enableTargetLimit = limitCheckbox.checked;
+            updateDisabledState();
+        };
 
         targetSelect.onchange = () => {
             this.tempSettings.targetType = targetSelect.value as 'quality' | 'size';
@@ -741,9 +755,8 @@ class PreviewPanelModal {
             }
         };
 
-        // Removed enableTargetLimit setting, so this call is removed
-        // this.updateTargetInput(targetInput);
-        // updateDisabledState();
+        this.updateTargetInput(targetInput);
+        updateDisabledState();
     }
     
     createFilterInput(
@@ -963,6 +976,21 @@ class PreviewPanelModal {
                 
                 progressModal.updateProgress(processedCount, I18n.t('compressing', file.name));
                 
+                // 跳过 GIF 文件，因为压缩会破坏动画
+                if (file.extension.toLowerCase() === 'gif') {
+                    results.push({
+                        file,
+                        originalSize,
+                        compressedSize: originalSize,
+                        savedSize: 0,
+                        compressionRatio: 1,
+                        success: true // 标记为成功但未压缩
+                    });
+                    processedCount++;
+                    progressModal.updateProgress(processedCount, I18n.t('skippedGif', file.name));
+                    continue;
+                }
+                
                 const data = await this.app.vault.readBinary(file);
                 const blob = new Blob([data], { type: `image/${file.extension}` });
                 const imageFile = new File([blob], file.name, { type: blob.type });
@@ -984,12 +1012,12 @@ class PreviewPanelModal {
                 }
 
                 const options = {
-                    maxSizeMB: this.tempSettings.targetType === 'size' ? this.tempSettings.targetFileSize : undefined,
-                    quality: this.tempSettings.targetType === 'quality' ? 
+                    maxSizeMB: this.tempSettings.enableTargetLimit && this.tempSettings.targetType === 'size' ? this.tempSettings.targetFileSize : undefined,
+                    quality: this.tempSettings.enableTargetLimit && this.tempSettings.targetType === 'quality' ? 
                         Number(this.tempSettings.targetQuality) / 100 : undefined,
                     useWebWorker: true,
                     maxWidthOrHeight: maxWidthOrHeight,
-                    initialQuality: this.tempSettings.targetType === 'quality' ? 
+                    initialQuality: this.tempSettings.enableTargetLimit && this.tempSettings.targetType === 'quality' ? 
                         Number(this.tempSettings.targetQuality) / 100 : 0.8,
                 };
 
@@ -1378,6 +1406,16 @@ class ImageCompressorSettingTab extends PluginSettingTab {
 					}
 				});
 			});
+
+		new Setting(containerEl)
+			.setName(I18n.t('settingsEnableTargetLimitName'))
+			.setDesc(I18n.t('settingsEnableTargetLimitDesc'))
+			.addToggle(toggle => toggle
+				.setValue(this.plugin.settings.enableTargetLimit)
+				.onChange(async (value) => {
+					this.plugin.settings.enableTargetLimit = value;
+					await this.plugin.saveSettings();
+				}));
 
 		new Setting(containerEl)
 			.setName(I18n.t('settingsShowResultsName'))
