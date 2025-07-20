@@ -5,7 +5,6 @@
 	"minAppVersion": "0.15.0",
 	"description": "A plugin to batch compress images.",
 	"author": "Dolag",
-	"authorUrl": "",
-	"isDesktopOnly": false,
-	"style": "styles.css"
+	"authorUrl": "https://github.com/dolag233",
+	"isDesktopOnly": false
 } 
