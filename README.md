@@ -12,8 +12,8 @@ An efficient Obsidian image compression plugin that automatically detects and ba
 
 ### Features
 
-- **📊 Advanced Filtering**: Filter images by resolution, file size, and compression ratio
-- **👀 Real-time Preview**: Real-time filtering with visual preview of image details (size, resolution, compression ratio)
+- **📊 Advanced Filtering**: Filter images by resolution and file size
+- **👀 Real-time Preview**: Real-time filtering with visual preview of image details (size, resolution)
 - **🎯 Flexible Compression**: Support quality mode and file size mode with custom resolution compression
 
 ### Usage
@@ -63,8 +63,8 @@ JPEG (.jpg, .jpeg) | PNG (.png) | GIF (.gif) | WebP (.webp)
 
 ### 功能特性
 
-- **📊 高级筛选**：按分辨率、文件大小、压缩比筛选图片
-- **👀 实时预览**：实时过滤，可视化预览图片详细信息（大小、分辨率、压缩比）
+- **📊 高级筛选**：按分辨率、文件大小筛选图片
+- **👀 实时预览**：实时过滤，可视化预览图片详细信息（大小、分辨率）
 - **🎯 灵活压缩**：支持质量模式和文件大小模式），并支持自定义压缩分辨率
 
 ### 使用方法

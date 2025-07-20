@@ -58,6 +58,7 @@ interface I18nTexts {
 	originalSize: string;
 	finalSize: string;
 	spaceSaved: string;
+	resultSavings: string;
 	compressionFailed: string;
 	skippedReason: string;
 	close: string;
@@ -148,6 +149,7 @@ const zhTexts: I18nTexts = {
 	originalSize: '原始大小: {0} MB',
 	finalSize: '最终大小: {0} MB',
 	spaceSaved: '节省空间: {0} MB',
+	resultSavings: '节省 {0} MB',
 	compressionFailed: '压缩失败',
 	skippedReason: '跳过 - 压缩会增加文件大小',
 	close: '关闭',
@@ -238,6 +240,7 @@ const enTexts: I18nTexts = {
 	originalSize: 'Original Size: {0} MB',
 	finalSize: 'Final Size: {0} MB',
 	spaceSaved: 'Space Saved: {0} MB',
+	resultSavings: 'Saved {0} MB',
 	compressionFailed: 'Compression failed',
 	skippedReason: 'Skipped - compression would increase file size',
 	close: 'Close',
@@ -286,11 +289,11 @@ class I18n {
 		this.texts = this.language === 'zh' ? zhTexts : enTexts;
 	}
 	
-	static t(key: keyof I18nTexts, ...args: string[]): string {
-		let text = this.texts[key] || key;
+	static t(key: keyof I18nTexts, ...args: (string | number)[]): string {
+		let text = this.texts[key] || key as string;
 		// 简单的字符串替换，支持 {0}, {1} 等占位符
 		args.forEach((arg, index) => {
-			text = text.replace(`{${index}}`, arg);
+			text = text.replace(`{${index}}`, String(arg));
 		});
 		return text;
 	}
