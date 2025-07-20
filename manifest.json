@@ -1,0 +1,11 @@
+{
+	"id": "image-compressor",
+	"name": "Image Compressor",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "A plugin to batch compress images.",
+	"author": "Dolag",
+	"authorUrl": "https://github.com/dolag233/Obsidian-Image-Compressor",
+	"isDesktopOnly": false,
+	"css": "styles.css"
+} 
