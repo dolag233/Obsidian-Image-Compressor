@@ -732,9 +732,13 @@ class PreviewPanelModal {
             targetSelect.disabled = !isEnabled;
             targetInput.disabled = !isEnabled;
 
-            const opacity = isEnabled ? '1' : '0.5';
-            targetSelect.style.opacity = opacity;
-            targetInput.style.opacity = opacity;
+            if (isEnabled) {
+                targetSelect.removeClass('compression-control-disabled');
+                targetInput.removeClass('compression-control-disabled');
+            } else {
+                targetSelect.addClass('compression-control-disabled');
+                targetInput.addClass('compression-control-disabled');
+            }
         };
 
         limitCheckbox.onchange = () => {
@@ -928,7 +932,7 @@ class PreviewPanelModal {
                 const preview = card.createEl('img', { cls: 'image-card-preview' });
                 preview.src = this.app.vault.getResourcePath(image.file);
                 preview.onerror = () => {
-                    preview.style.display = 'none';
+                    preview.addClass('image-preview-hidden');
                 };
             }
             
@@ -1151,7 +1155,13 @@ class FileTree {
                 // Re-render just this node's children
                 const childrenUl = li.querySelector('.file-tree-children') as HTMLElement;
                 if (childrenUl) {
-                    childrenUl.style.display = this.expanded.has(node.path) ? 'block' : 'none';
+                    if (this.expanded.has(node.path)) {
+                        childrenUl.removeClass('file-tree-children-collapsed');
+                        childrenUl.addClass('file-tree-children-expanded');
+                    } else {
+                        childrenUl.removeClass('file-tree-children-expanded');
+                        childrenUl.addClass('file-tree-children-collapsed');
+                    }
                     expandIcon.textContent = this.expanded.has(node.path) ? '▼' : '▶';
                 }
             };
@@ -1170,7 +1180,11 @@ class FileTree {
 
         // Render children
         const childrenUl = li.createEl('ul', { cls: 'file-tree-children' });
-        childrenUl.style.display = this.expanded.has(node.path) ? 'block' : 'none';
+        if (this.expanded.has(node.path)) {
+            childrenUl.addClass('file-tree-children-expanded');
+        } else {
+            childrenUl.addClass('file-tree-children-collapsed');
+        }
         
         node.children.forEach(child => {
             if (child instanceof TFolder) {
@@ -1446,7 +1460,7 @@ class ProgressModal extends Modal {
         contentEl.empty();
         
         // 确保模态框在最前面
-        this.modalEl.style.zIndex = '999999';
+        this.modalEl.addClass('modal-high-priority');
         
         contentEl.createEl('h2', { text: I18n.t('compressionProgress') });
         
@@ -1472,7 +1486,7 @@ class ProgressModal extends Modal {
 
     updateProgress(completed: number, status: string) {
         const percentage = (completed / this.totalItems) * 100;
-        this.progressBar.style.width = `${percentage}%`;
+        this.progressBar.setCssProps({'--progress-width': `${percentage}%`});
         this.progressText.textContent = `${completed} / ${this.totalItems}`;
         this.statusText.textContent = status;
     }
